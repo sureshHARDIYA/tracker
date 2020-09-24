@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Index page</title>
+  <meta name="viewport" content="width=device-width">
+</head>
+<body>
+  <a href="index.html">index</a>
+  <a href="youtube.html">youtube</a>
+  <a href="bind-media.html">bind-media</a>
+  <a href="form.html">form</a>
+  <h1>Use tracker with form</h1>
+  <form id="form">
+    <input type="text">
+    <button type="submit">Submit</button>
+  </form>
+  <script src="../dist/tracker.umd.js"></script>
+  <script>
+    // init tracker
+    window.tracker.init({
+      key: 'secret-key',
+      endpoint: 'https://jsonplaceholder.typicode.com/todos/',
+    });
+    var form = document.getElementById('form');
+
+    form.addEventListener('submit', (e) => {
+      e.preventDefault();
+
+      window.tracker.trackEvent('form', 'testFormSubmit', { foo: 'bar' });
+
+      // Make validation...
+      var isFormValid = true;
+
+      if (isFormValid) {
+        // Make ajax call...
+        window.tracker.trackEvent('form', 'testFormSuccess', { foo: 'bar' });
+      } else {
+        window.tracker.trackEvent('form', 'testFormInvalid', { foo: 'bar' });
+      }
+    })
+  </script>
+</body>
+</html>

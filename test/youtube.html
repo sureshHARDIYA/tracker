@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>YouTube</title>
+  <meta name="viewport" content="width=device-width">
+</head>
+<body>
+  <a href="index.html">index</a>
+  <a href="youtube.html">youtube</a>
+  <a href="bind-media.html">bind-media</a>
+  <a href="form.html">form</a>
+  <h1>Use tracker with YouTube video</h1>
+  <div style="padding: 20px 0;">
+    <div id="player"></div>
+  </div>
+  <script src="../dist/tracker.umd.js"></script>
+  <script src="https://www.youtube.com/iframe_api"></script>
+  <script>
+    // init tracker
+    window.tracker.init({
+      key: 'secret-key',
+      endpoint: 'https://jsonplaceholder.typicode.com/todos/',
+    });
+
+    var player;
+    var videoId = 'M7lc1UVf-VE';
+
+    // Create YouTube player
+    // https://developers.google.com/youtube/iframe_api_reference
+    function onYouTubeIframeAPIReady() {
+      player = new YT.Player('player', {
+        height: '390',
+        width: '640',
+        videoId: videoId,
+        events: {
+          onStateChange: onPlayerStateChange,
+        },
+      });
+    }
+
+    // Track player events
+    function onPlayerStateChange(e) {
+      if (e.data === YT.PlayerState.PLAYING) {
+        window.tracker.trackEvent('youtube:play', 'demoVideo', {
+          videoId,
+          time: player.getCurrentTime(),
+        });
+        return;
+      }
+
+      if (e.data === YT.PlayerState.PAUSED) {
+        window.tracker.trackEvent('youtube:pause', 'demoVideo', {
+          videoId,
+          time: player.getCurrentTime(),
+        });
+        return;
+      }
+
+      if (e.data === YT.PlayerState.ENDED) {
+        window.tracker.trackEvent('youtube:ended', 'demoVideo', { videoId });
+      }
+    }
+  </script>
+</body>
+</html>

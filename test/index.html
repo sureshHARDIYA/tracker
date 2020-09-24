@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Index page</title>
+  <meta name="viewport" content="width=device-width">
+</head>
+<body>
+  <a href="index.html">index</a>
+  <a href="youtube.html">youtube</a>
+  <a href="bind-media.html">bind-media</a>
+  <a href="form.html">form</a>
+  <h1>Bind trackers to the static HTML</h1>
+  <div style="padding: 20px 0;">
+    <button type="button" data-tracker-click='{ "name": "subscribeButton", "data": { "subscription": "news" } }'>
+      Click
+    </button>
+  </div>
+  <div style="padding: 20px 0;">
+    <video
+      data-tracker-media='{ "name": "flowerVideo", "data": { "videoId": "flower" } }'
+      controls
+      style="width: 360px; height: 240px;"
+    >
+      <source src="https://interactive-examples.mdn.mozilla.net/media/cc0-videos/flower.webm" type="video/webm">
+      <source src="https://interactive-examples.mdn.mozilla.net/media/cc0-videos/flower.mp4" type="video/mp4">
+    </video>
+  </div>
+  <div style="padding: 20px 0;">
+    <audio
+      data-tracker-media='{ "name": "roarAudio", "data": { "audioId": "roar" } }'
+      controls
+      src="https://interactive-examples.mdn.mozilla.net/media/cc0-audio/t-rex-roar.mp3"
+    >
+    </audio>
+  </div>
+  <script src="../dist/tracker.umd.js"></script>
+  <script>
+    // init tracker
+    // with autoBind option it adds tracking on elements with data-tracker-click
+    // and data-tracker-media attributes
+    window.tracker.init({
+      key: 'secret-key',
+      // endpoint: 'https://jsonplaceholder.typicode.com/todos/',
+      endpoint: 'http://localhost:9000',
+      autoBind: true,
+    });
+  </script>
+</body>
+</html>

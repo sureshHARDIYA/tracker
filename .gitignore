@@ -1,0 +1,15 @@
+node_modules
+
+.idea
+.vscode
+.cache
+.DS_Store
+.project
+.settings
+.log
+*.log
+*.exe
+*zip
+Thumbs.db
+*tmp*
+node_modules
