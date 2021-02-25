@@ -9,13 +9,12 @@ module.exports = {
     'airbnb-base',
   ],
   rules: {
-    'class-methods-use-this': 0,
-    'no-console': [
-      1,
-      {
-        allow: ['warn', 'error'],
-      },
-    ],
-    'no-param-reassign': [2, { props: false }],
+    'class-methods-use-this': 'off',
+    'import/no-named-as-default': 'off',
+    'no-console': ['warn', { allow: ['warn', 'error'] }],
+    'no-param-reassign': ['error', { props: false }],
+    'no-plusplus': 'off',
+    'no-underscore-dangle': 'off',
+    'prefer-destructuring': 'off',
   },
 };

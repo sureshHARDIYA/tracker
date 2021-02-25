@@ -1,9 +1,9 @@
-import Fingerprint2 from "@fingerprintjs/fingerprintjs";
-import uuidv4 from "uuid/dist/esm-browser/v4";
+import Fingerprint2 from '@fingerprintjs/fingerprintjs';
+import uuidv4 from 'uuid/dist/esm-browser/v4';
 
-import MediaTracker from "./MediaTracker";
+import MediaTracker from './MediaTracker';
 
-const ATTR_NAMESPACE = "data-tracker";
+const ATTR_NAMESPACE = 'data-tracker';
 const ATTR_CLICK = `${ATTR_NAMESPACE}-click`;
 const ATTR_MEDIA = `${ATTR_NAMESPACE}-media`;
 
@@ -24,7 +24,7 @@ export default class Tracker {
     this.endpoint = params.endpoint;
 
     this.userId = null;
-    this.sessionId = uuidv4().replace(/-/g, "");
+    this.sessionId = uuidv4().replace(/-/g, '');
     this.events = [];
     this.eventsWaitingForUserId = []; // all events tracked before user identified
     this.mediaTrackers = [];
@@ -37,7 +37,7 @@ export default class Tracker {
     this.pageBluredAt = 0;
     this.offFocusDuration = 0;
 
-    window.addEventListener("beforeunload", () => {
+    window.addEventListener('beforeunload', () => {
       this.mediaTrackers.forEach(({ tracker }) => {
         tracker.interrupt();
       });
@@ -45,11 +45,11 @@ export default class Tracker {
       this.sendEvents();
     });
 
-    document.addEventListener("visibilitychange", () => {
+    document.addEventListener('visibilitychange', () => {
       if (document.hidden && !this.isPageBlured) {
         this.isPageBlured = true;
         this.pageBluredAt = Date.now();
-        this.trackEvent("pageBlur", "");
+        this.trackEvent('pageBlur', '');
         return;
       }
 
@@ -57,15 +57,15 @@ export default class Tracker {
         this.offFocusDuration += Date.now() - this.pageBluredAt;
         this.isPageBlured = false;
         this.pageBluredAt = 0;
-        this.trackEvent("pageFocus", "");
+        this.trackEvent('pageFocus', '');
       }
     });
 
     if (params && params.autoBind) {
       this.setupClickEventTracking();
       this.setupMediaEventsTracking();
-      this.trackPageView("", {
-        from: document.referrer
+      this.trackPageView('', {
+        from: document.referrer,
       });
     }
 
@@ -73,25 +73,25 @@ export default class Tracker {
   }
 
   identifyUser() {
-    this.userId = window.localStorage.getItem("trackerUserId");
+    this.userId = window.localStorage.getItem('trackerUserId');
     if (this.userId) {
       this.sendEvents();
       return;
     }
 
     window.requestIdleCallback(() => {
-      Fingerprint2.get(components => {
-        const values = components.map(component => component.value);
-        this.userId = Fingerprint2.x64hash128(values.join(""), 31);
-        window.localStorage.setItem("trackerUserId", this.userId);
+      Fingerprint2.get((components) => {
+        const values = components.map((component) => component.value);
+        this.userId = Fingerprint2.x64hash128(values.join(''), 31);
+        window.localStorage.setItem('trackerUserId', this.userId);
 
         if (this.eventsWaitingForUserId.length) {
           this.events = [
-            ...this.eventsWaitingForUserId.map(entry => ({
+            ...this.eventsWaitingForUserId.map((entry) => ({
               ...entry,
-              userId: this.userId
+              userId: this.userId,
             })),
-            ...this.events
+            ...this.events,
           ];
           this.sendEvents();
         }
@@ -107,7 +107,7 @@ export default class Tracker {
       name,
       time: Date.now(),
       url: eventUrl || document.location.href,
-      data
+      data,
     };
 
     if (this.userId) {
@@ -122,20 +122,15 @@ export default class Tracker {
     this.isPageBlured = false;
     this.pageViewedAt = Date.now();
     this.offFocusDuration = 0;
-    this.trackEvent("pageView", name, data, eventUrl);
+    this.trackEvent('pageView', name, data, eventUrl);
   }
 
   trackPageLeave(name, data, eventUrl) {
-    this.trackEvent(
-      "pageLeave",
-      name,
-      {
-        ...data,
-        sessionDuration: Date.now() - this.pageViewedAt,
-        offFocusDuration: this.offFocusDuration
-      },
-      eventUrl
-    );
+    this.trackEvent('pageLeave', name, {
+      ...data,
+      sessionDuration: Date.now() - this.pageViewedAt,
+      offFocusDuration: this.offFocusDuration,
+    }, eventUrl);
     this.isPageBlured = false;
     this.pageViewedAt = 0;
     this.offFocusDuration = 0;
@@ -154,21 +149,18 @@ export default class Tracker {
 
     const payload = JSON.stringify({
       data: this.events,
-      key: this.key
+      key: this.key,
     });
 
     if (!this.endpoint) {
-      console.warn("Endpoint is not set");
-      console.log(payload);
+      console.warn('Endpoint is not set');
     } else {
       const xhr = new XMLHttpRequest();
-      xhr.open("POST", this.endpoint);
-      xhr.setRequestHeader("Content-Type", "application/json");
+      xhr.open('POST', this.endpoint);
+      xhr.setRequestHeader('Content-Type', 'application/json');
       xhr.send(payload);
 
-      xhr.onerror = err => {
-        /* do nothing */
-      };
+      xhr.onerror = () => { /* do nothing */ };
     }
 
     this.events = [];
@@ -180,12 +172,12 @@ export default class Tracker {
     this.isTrackingClick = !!document.querySelector(`[${ATTR_CLICK}]`);
 
     if (isTrackingClick && !this.isTrackingClick) {
-      document.removeEventListener("click", this.globalOnClick);
+      document.removeEventListener('click', this.globalOnClick);
       return;
     }
 
     if (!isTrackingClick && this.isTrackingClick) {
-      document.addEventListener("click", this.globalOnClick);
+      document.addEventListener('click', this.globalOnClick);
     }
   }
 
@@ -194,12 +186,12 @@ export default class Tracker {
 
     let target = e.target;
     while (target !== document.documentElement) {
-      let config = target.getAttribute(ATTR_CLICK);
+      const config = target.getAttribute(ATTR_CLICK);
       if (config) {
         try {
           const { name, data } = JSON.parse(config);
           if (name) {
-            this.trackEvent("click", name.toString(), data);
+            this.trackEvent('click', name.toString(), data);
           }
         } catch (err) {
           console.warn(`Invalid data-tracker-click attribute value: "${config}"`);
@@ -211,18 +203,18 @@ export default class Tracker {
   }
 
   bindMediaTracking(el, name, data) {
-    const isVideo = el.tagName === "VIDEO";
-    const isAudio = el.tagName === "AUDIO";
+    const isVideo = el.tagName === 'VIDEO';
+    const isAudio = el.tagName === 'AUDIO';
 
     if (!isVideo && !isAudio) {
-      console.warn("Invalid media element: should be <video> or <audio>");
+      console.warn('Invalid media element: should be <video> or <audio>');
       return;
     }
 
     // Prevent double init
-    if (this.mediaTrackers.some(entry => entry.el === el)) return;
+    if (this.mediaTrackers.some((entry) => entry.el === el)) return;
 
-    const type = isVideo ? "video" : "audio";
+    const type = isVideo ? 'video' : 'audio';
 
     const mediaTracker = new MediaTracker(el, {
       onPlay: ({ time }) => {
@@ -236,7 +228,7 @@ export default class Tracker {
       },
       onInterrupted: ({ time }) => {
         this.trackEvent(`${type}:interrupted`, name, { ...data, time });
-      }
+      },
     });
 
     this.mediaTrackers.push({ el, tracker: mediaTracker });
@@ -245,8 +237,8 @@ export default class Tracker {
   setupMediaEventsTracking() {
     const els = document.body.querySelectorAll(`[${ATTR_MEDIA}]`);
 
-    Array.prototype.forEach.call(els, el => {
-      let name = "";
+    Array.prototype.forEach.call(els, (el) => {
+      let name = '';
       let data = {};
 
       let config = el.getAttribute(ATTR_MEDIA);
@@ -254,7 +246,7 @@ export default class Tracker {
         if (config) {
           config = JSON.parse(config);
           if (config.name) name = config.name.toString();
-          if (typeof config.data === "object") data = { ...config.data };
+          if (typeof config.data === 'object') data = { ...config.data };
         }
       } catch (err) {
         console.warn(`Invalid data-tracker-media attribute value: "${config}"`);

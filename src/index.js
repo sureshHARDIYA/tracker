@@ -1,3 +1,3 @@
-import Tracker from "./Tracker";
+import Tracker from './Tracker';
 
 export default new Tracker();
