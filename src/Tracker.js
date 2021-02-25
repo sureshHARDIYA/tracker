@@ -8,6 +8,7 @@ const ATTR_CLICK = `${ATTR_NAMESPACE}-click`;
 const ATTR_MEDIA = `${ATTR_NAMESPACE}-media`;
 
 const SENDING_DELAY = 2000;
+const LOCAL_STORAGE_USER_ID_KEY = 'trackerUserId';
 
 export default class Tracker {
   constructor() {
@@ -26,7 +27,6 @@ export default class Tracker {
     this.userId = null;
     this.sessionId = uuidv4().replace(/-/g, '');
     this.events = [];
-    this.eventsWaitingForUserId = []; // all events tracked before user identified
     this.mediaTrackers = [];
 
     this.isTrackingClick = false;
@@ -73,7 +73,7 @@ export default class Tracker {
   }
 
   identifyUser() {
-    this.userId = window.localStorage.getItem('trackerUserId');
+    this.userId = window.localStorage.getItem(LOCAL_STORAGE_USER_ID_KEY);
     if (this.userId) {
       this.sendEvents();
       return;
@@ -83,39 +83,21 @@ export default class Tracker {
       Fingerprint2.get((components) => {
         const values = components.map((component) => component.value);
         this.userId = Fingerprint2.x64hash128(values.join(''), 31);
-        window.localStorage.setItem('trackerUserId', this.userId);
-
-        if (this.eventsWaitingForUserId.length) {
-          this.events = [
-            ...this.eventsWaitingForUserId.map((entry) => ({
-              ...entry,
-              userId: this.userId,
-            })),
-            ...this.events,
-          ];
-          this.sendEvents();
-        }
-      });
+        window.localStorage.setItem(LOCAL_STORAGE_USER_ID_KEY, this.userId);
+        this.sendEvents();
+      }, 5000);
     });
   }
 
   trackEvent(event, name, data, eventUrl) {
-    const entry = {
-      userId: this.userId,
-      sessionId: this.sessionId,
+    this.events.push({
       event,
       name,
       time: Date.now(),
       url: eventUrl || document.location.href,
       data,
-    };
-
-    if (this.userId) {
-      this.events.push(entry);
-      this.scheduleSendEvents();
-    } else {
-      this.eventsWaitingForUserId.push(entry);
-    }
+    });
+    this.scheduleSendEvents();
   }
 
   trackPageView(name, data, eventUrl) {
@@ -145,16 +127,20 @@ export default class Tracker {
 
   sendEvents() {
     clearTimeout(this.sendEventsTimeout);
-    if (!this.events.length) return;
 
-    const payload = JSON.stringify({
-      data: this.events,
-      key: this.key,
-    });
+    if (!this.userId) return; // don't send if user id is not defined yet
+    if (!this.events.length) return;
 
     if (!this.endpoint) {
       console.warn('Endpoint is not set');
     } else {
+      const payload = JSON.stringify({
+        events: this.events,
+        key: this.key,
+        userId: this.userId,
+        sessionId: this.sessionId,
+      });
+
       const xhr = new XMLHttpRequest();
       xhr.open('POST', this.endpoint);
       xhr.setRequestHeader('Content-Type', 'application/json');
